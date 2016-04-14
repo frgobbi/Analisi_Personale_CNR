@@ -1,0 +1,226 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>GRAFICO LAUREE</title>
+		<!-- Importazione del file contente il codice css della libreria C3.js -->
+		<link href="librerie/c3/c3.css" rel="stylesheet" type="text/css">
+		<!-- Importazione del codice Javascript delle librerie C3.js e D3.js -->
+		<script src="librerie/d3/d3.min.js" charset="utf-8"></script>
+		<!-- Codice c3 -->
+		<script src="librerie/c3/c3.min.js"></script>
+		<!-- Importazione c3.js -->
+		<script src="librerie/jquery.js"></script>
+				
+				<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+		<!-- Latest compiled and minified JavaScript -->
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+		<script type="text/javascript">
+			var chart;
+			var link='http://paploo.irpi.cnr.it/itis2015/personale/Personale.php';
+			function generaGraficoPersonale(link)
+			{
+				chart = c3.generate({
+					data: {
+						x: 'data',
+						xFormat: '%Y',
+						url: link,
+						type: 'area',
+						groups: [['Assegnisti di Ricerca','Collaboratori','Direttore','Personale Amministrativo','Personale di Ricerca','Personale Tecnico','Responsabili U.O.S.']],
+					},
+					axis: {
+						x: {
+							type: 'timeseries',
+							tick: {
+								count: 5,
+								format: '%Y',
+							},
+							label:{
+								text: 'Anno di laurea',
+								position: 'outer-center',
+							},
+						},
+						y: {
+							tick: {
+								    format: function(x) {
+     									   return (x == Math.floor(x)) ? x : "";
+									}
+  		 					 },
+							 label: {
+								text: 'Numero Laureati',
+								position: 'outer-middle',
+							}                                                   
+						},
+							
+					},
+					/*
+					color: {
+      						  pattern: ['#FF0000','#FFFF00', '#0000FF', '#964B00', '#4B0082', '#21421E', '#00FF00', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', 
+						  '#f7b6d2', '#aec7e8' , '#c7c7c7','#1f77b4' , '#dbdb8d', '#17becf', '#9edae5']
+						},
+						*/
+					 zoom:{
+    						enabled: true,
+					},
+					point:{
+						show: true,
+					},
+				});
+			}
+			function generaGraficoNumero(link)
+			{
+				chart = c3.generate({
+					data: {
+						x: 'tipoQualifica',
+						url: link,
+						type: 'bar',	
+					},
+					axis: {
+						x: {
+							type: 'categories',
+							label:{
+								text: 'Funzione aziendale',
+								position: 'outer-center',
+							},
+						},
+						y: {
+							tick: {
+								    format: function(x) {
+     									   return (x == Math.floor(x)) ? x : "";
+									}
+  		 					 },
+							 label: {
+								text: 'Numero',
+								position: 'outer-middle',
+							}                                                   
+						},
+							
+					},
+					/*
+					color: {
+      						  pattern: ['#FF0000','#FFFF00', '#0000FF', '#964B00', '#4B0082', '#21421E', '#00FF00', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', 
+						  '#f7b6d2', '#aec7e8' , '#c7c7c7','#1f77b4' , '#dbdb8d', '#17becf', '#9edae5']
+						},
+						*/
+					 zoom:{
+    						enabled: true,
+					},
+					point:{
+						show: true,
+					},
+				});
+			}
+			function generaGraficoInglese(link)
+			{
+				chart = c3.generate({
+					data: {
+						x: 'tipoQualifica',
+						url: link,
+						type: 'bar',	
+					},
+					axis: {
+						x: {
+							type: 'categories',
+							label:{
+								text: 'Role',
+								position: 'outer-center',
+							},
+						},
+						y: {
+							tick: {
+								    format: function(x) {
+     									   return (x == Math.floor(x)) ? x : "";
+									}
+  		 					 },
+							 label: {
+								text: 'Number of employee',
+								position: 'outer-middle',
+							}                                                   
+						},
+							
+					},
+					/*
+					color: {
+      						  pattern: ['#FF0000','#FFFF00', '#0000FF', '#964B00', '#4B0082', '#21421E', '#00FF00', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', 
+						  '#f7b6d2', '#aec7e8' , '#c7c7c7','#1f77b4' , '#dbdb8d', '#17becf', '#9edae5']
+						},
+						*/
+					 zoom:{
+    						enabled: true,
+					},
+					point:{
+						show: true,
+					},
+				});
+			}
+			function chiamataAjax(tipo,link,time,identificativo,tipoGrafico)
+			{
+				$.ajax({
+					//Type of Ajax call (GET).
+					type: tipo,
+					//URL of the php resource, that generate the data of the chart.
+					url: link,
+					timeout:time,
+					//In case of success, the chart will be generated.
+					success: function(){
+						tipo = tipoGrafico.localeCompare("personale");
+						if(tipo == 0)
+						{
+							generaGraficoPersonale(link+"?id="+identificativo);
+						}
+						else
+						{
+							tipo = tipoGrafico.localeCompare("numero");
+							if(tipo == 0)
+							{
+								generaGraficoNumero(link+"?id="+identificativo);
+							}
+							else
+							{
+								generaGraficoNumero(link+"?id="+identificativo);	
+							}
+						}	
+					},
+					error: function(){
+						//If there are some problems with the Ajax call a message error will be generated.
+						alert("Si e' verificato un errore con la chiamata Ajax, impossibile generare il grafico!");
+					},
+				})
+			}
+			$(document).ready(function(){
+				tipoGrafico="personale";
+				chiamataAjax("GET",link,5000,"2",tipoGrafico);
+			
+				$('#personale').click(function(){
+					chiamataAjax("GET",link,5000,"2","personale");
+				});
+				$('#numero').click(function(){
+					chiamataAjax("GET",link,5000,"3","");
+				});
+				$('#english').click(function(){
+					chiamataAjax("GET",link,5000,"4","");
+				});				
+			});
+		</script>
+		<style type="text/css">
+			#chart{
+				min-height: 500px;
+            }
+		</style>
+	</head>
+	<body>
+		<div id="chart">
+		</div>
+		<div class="row">
+		</div>
+		<div class="col-md-4 col-md-offset-4" id="pulsanti">
+			<button class="btn btn-primary btn-block" id="personale">RUOLI AZIENDALI PER ANNO DI LAUREA</button>
+			<button class="btn btn-primary btn-block" id="numero">NUMERO DI DIPENDENTI PER RUOLO</button>
+			<button class="btn btn-primary btn-block" id="english">NUMBER OF EMPLOYEES FOR ROLE</button>
+		</div>
+	</body>
+</html>

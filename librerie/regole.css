@@ -1,0 +1,59 @@
+            @font-face {
+                font-family: "myfont";
+                src: url("librerie/fontawesome-webfont.woff") format('woff');
+                font-weight: bold;
+            }
+            @font-face {
+                font-family: "myfont";
+                src: url("libreire/fontawesome-webfont.woff2") format('woff2');
+                font-weight: bold;
+            }
+            @font-face {
+                font-family: 'font_name';
+                src: url('librerie/fontawesome-webfont.ttf') format('truetype');
+                ;
+            }
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            html,
+            body,
+            #map {
+                height: 100%;
+            }
+            .popupBox {
+                display: none;
+                position: relative;
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 50px;
+                width: 80%;
+                height: 80%;
+                color: #000000;
+                border: 5px solid #4E93A2;
+                -moz-border-radius: 8px;
+                -webkit-border-radius: 8px;
+                background-color: #FFFFFF;
+                z-index: 1000;
+                overflow-y: auto;
+            }
+            #overlay {
+                display: none;
+                opacity: 0.5;
+                background-color: black;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                top: 0px;
+                left: 0px;
+                z-index: 999;
+            }
+            #tabella {
+                height: 250px;
+                width: 350px;
+                overflow-y: auto;
+            }
+            #grafico1 {
+                margin: 50px;
+            }

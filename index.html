@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Personale IRPI</title>
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css">
+        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="librerie/leaflet.extra-markers.css">
+        <link rel="stylesheet" href="librerie/EasyButton/src/easy-button.css">
+
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script>
+        <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+        <script src="http://code.jquery.com/jquery-2.1.4.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script src="librerie/leaflet.js"></script>
+        <script src="librerie/jquery-2.1.1.min.js"></script>
+        <script src="librerie/leaflet.markercluster.js"></script>
+        <script src="librerie/leaflet.extra-markers.js"></script>
+
+        <link href="librerie/c3/c3.css" rel="stylesheet" type="text/css">
+        <!-- Importazione del codice Javascript delle librerie C3.js e D3.js -->
+        <script src="librerie/d3/d3.min.js" charset="utf-8"></script>
+        <!-- Codice c3 -->
+        <script src="librerie/c3/c3.min.js"></script>
+        <!-- Importazione c3.js -->
+        <script src="librerie/jquery.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="librerie/css/dc.css" />
+        <script type="text/javascript" src="librerie/js/d3.js"></script>
+        <script type="text/javascript" src="librerie/js/crossfilter.js"></script>
+        <script type="text/javascript" src="librerie/js/dc.js"></script>
+		
+		
+		<link rel="stylesheet" type="text/css" href="librerie/regole.css"/>
+    </head>
+    <body>
+        <div id="map">
+            <div id="popupBox1" class="popupBox">
+                <div class="row" id="grafico1">
+                    <div align="center" id="chart"></div>
+                    <div id="pulsanti" align="center">
+                        <button class="btn btn-primary" id="personale">ASSUNZIONI</button>
+                        <button class="btn btn-primary" id="numero">NUMERO DI DIPENDENTI</button>
+                        <button class="btn btn-primary" id="english">NUMBER OF EMPLOYEES</button>
+                    </div>
+                </div>
+            </div>
+            <div id="popupBox2" class="popupBox container-fluid">
+                 <div class="row">
+                        <img style="margin:5px;" class="col-sm-offset-10 "src="librerie/img/italiano.png" width="40" height="30" id="italiano" >
+                        <img style="margin:5px;" src="librerie/img/inglese.png"  width="40" height="30" id="inglese" >
+                    </div>
+                    <br/><br/>
+                    <div class="row">
+                        <div id="test" align="center"></div>
+                        </div>
+                        <!--
+                        <div class="col-sm-5">
+                        <table id="tabella" class="table table-hover dc-data-table"></table>
+                        </div>
+						-->
+            </div>
+            <div id="overlay"></div>
+        </div>
+
+    <script>
+ var map = L.map('map');
+ var cerc = [];
+ var cerchio = [];
+ var button = "<button class=\"btn btn-primary\" onclick=\"GPopup1()\">GRAFICO ASSUNZIONI</button><br>";
+ var button1 = "<button class=\"btn btn-primary\" onclick=\"GPopup2()\">GRAFICO DIPENDENTI</button>";
+ var max = 0;
+ var chart;
+ var link = 'http://paploo.irpi.cnr.it/itis2015/personale/Personale.php';
+ var coordinates;
+ var colori = ["#FF0000","#FF8040","#0000FF","#FF00FF","#00FF00"];
+var app =0;
+var vet=[];
+
+
+
+ L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw', {
+     maxZoom: 18,
+     attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+         '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+         'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+     id: 'mapbox.streets'
+ }).addTo(map);
+ 
+
+
+ map.locate({
+    setView: true,
+	maxZoom: 6
+ });
+ 
+
+ $(document).ready(function() {
+     $.ajax({
+         type: 'GET',
+         dataType: "json",
+         data: {
+             id: 1
+         },
+         url: 'Personale.php',
+         success: function(data) {
+             max = 0;
+             for (var i = 0; i < data.features.length; i++) {
+                 if (data.features[i].properties.np > max) {
+                     max = data.features[i].properties.np;
+                 }
+             }
+             app = max/5;
+             vet[0] = max;
+             console.log("\n"+vet[0]);
+             for(var i=1;i<colori.length;i++){
+		vet[i] = max-(app*i);
+                console.log("\n"+vet[i]);
+            }
+             var dati = data;
+             for (var i = 0; i < dati.features.length; i++) {
+                 L.marker([dati.features[i].geometry.coordinates[1], dati.features[i].geometry.coordinates[0]], {
+                     icon: L.ExtraMarkers.icon({
+                         icon: 'fa-building',
+                         shape: 'circle',
+                         prefix: 'fa',
+                         markerColor: 'blue-dark'
+                     })
+                 }).addTo(map).bindPopup("Sede:" + data.features[i].properties.Popup + "<br>" +
+                     "Numero dipendenti: " + data.features[i].properties.np + "<br><br>" + button + button1);
+                 cerch = scegliCerchio(data.features[i].properties.np, max);
+                 L.circle([data.features[i].geometry.coordinates[1], data.features[i].geometry.coordinates[0]], cerchio[0], {
+                     color: cerchio[1],
+                     fillColor: cerchio[1],
+                     fillOpacity: 0.5
+                 }).addTo(map);
+
+             }
+         }
+     });
+ });
+
+ function scegliCerchio(np, max) {
+     var rag = (np / max) * 120000;
+          
+    if (np > vet[1]) {
+            cerchio = [rag,colori[0]]
+        } else {
+            if (np > vet[2]) {
+                    cerchio = [rag, colori[1]]; 
+            } else {
+                    if (np > vet[3]) {
+                            cerchio = [rag, colori[2]]; 
+                    } else {
+                            if (np > vet[4]) {
+                                    cerchio = [rag, colori[3]]; 
+                            } else {
+                                            cerchio = [rag, colori[4]];
+                                       }
+                            }
+                    }
+            }
+     
+     
+     console.log(cerchio);
+     return cerchio;
+ }
+
+ map.on('popupopen', function(e) {
+
+     coordinates = e.popup.getLatLng();
+     console.log(coordinates);
+
+     //circle = circle = L.circle(cordinates, 10000).addTo(map);
+ });
+
+ function GPopup1() {
+
+     $('#overlay').fadeIn('slow');
+     $('#popupBox1').fadeIn('slow');
+     $('#map').off('click');
+     chiamataAjax("GET", link, 5000, "2", tipoGrafico);
+     chiamataAjaxDC("GET", link, 5000, "3", tipoGrafico);
+
+     $('#overlay, .deleteMeetingCancel').click(function() {
+         $('#overlay').fadeOut('slow');
+         $('#popupBox1').fadeOut('slow');
+		 map.dragging.enable();
+         $('#popupContent').fadeOut('slow');
+
+
+     });
+	map.dragging.disable();
+ }
+
+ function GPopup2() {
+
+     $('#overlay').fadeIn('slow');
+     $('#popupBox2').fadeIn('slow');
+     $('#map').off('click');
+     chiamataAjax("GET", link, 5000, "2", tipoGrafico);
+     chiamataAjaxDC("GET", link, 5000, "3", tipoGrafico);
+
+     $('#overlay, .deleteMeetingCancel').click(function() {
+         $('#overlay').fadeOut('slow');
+         $('#popupBox2').fadeOut('slow');
+		 map.dragging.enable();
+         $('#popupContent').fadeOut('slow');
+
+
+     });
+	 map.dragging.disable();
+
+ }
+//_______________________________________________________________________________________________________________________________________________________________________________________
+//GRAFICO BINUCCI
+//_______________________________________________________________________________________________________________________________________________________________________________________
+ 
+    
+    
+    function generaGraficoPersonale(link) {
+     console.log(link);
+     chart = c3.generate({
+        size: {
+                height: 400,
+                width: 900,
+        },
+         data: {
+             x: 'data',
+             xFormat: '%Y',
+             url: link,
+             type: 'area',
+             groups: [
+                 ['Assegnisti di Ricerca', 'Collaboratori', 'Direttore', 'Personale Amministrativo', 'Personale di Ricerca', 'Personale Tecnico', 'Responsabili U.O.S.']
+             ],
+         },
+         axis: {
+             x: {
+                 type: 'timeseries',
+                 tick: {
+                     count: 5,
+                     format: '%Y',
+                 },
+                 label: {
+                     text: 'Anno di assunzione',
+                     position: 'outer-center',
+                 },
+             },
+             y: {
+                 tick: {
+                     format: function(x) {
+                         return (x == Math.floor(x)) ? x : "";
+                     }
+                 },
+                 label: {
+                     text: 'Numero dipendenti',
+                     position: 'outer-middle',
+                 }
+             },
+         },
+         /*
+          color: {
+          pattern: ['#FF0000','#FFFF00', '#0000FF', '#964B00', '#4B0082', '#21421E', '#00FF00', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', 
+          '#f7b6d2', '#aec7e8' , '#c7c7c7','#1f77b4' , '#dbdb8d', '#17becf', '#9edae5']
+          },
+          */
+         zoom: {
+             enabled: true,
+         },
+         point: {
+             show: true,
+         },
+     });
+ }
+
+ function generaGraficoNumero(link) {
+     chart = c3.generate({
+        size: {
+                height: 400,
+                width: 900,
+        },
+         data: {
+             x: 'tipoQualifica',
+             url: link,
+             type: 'bar',
+         },
+         axis: {
+             x: {
+                 type: 'categories',
+                 label: {
+                     text: 'Qualifica',
+                     position: 'outer-center',
+                 },
+             },
+             y: {
+                 tick: {
+                     format: function(x) {
+                         return (x == Math.floor(x)) ? x : "";
+                     }
+                 },
+                 label: {
+                     text: 'Numero',
+                     position: 'outer-middle',
+                 }
+             },
+         },
+         /*
+          color: {
+          pattern: ['#FF0000','#FFFF00', '#0000FF', '#964B00', '#4B0082', '#21421E', '#00FF00', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', 
+          '#f7b6d2', '#aec7e8' , '#c7c7c7','#1f77b4' , '#dbdb8d', '#17becf', '#9edae5']
+          },
+          */
+         zoom: {
+             enabled: true,
+         },
+         point: {
+             show: true,
+         },
+     });
+ }
+
+ function generaGraficoInglese(link) {
+     chart = c3.generate({
+        size: {
+                height: 400,
+                width: 900,
+        },
+         data: {
+             x: 'tipoQualifica',
+             url: link,
+             type: 'bar',
+         },
+         axis: {
+             x: {
+                 type: 'categories',
+                 label: {
+                     text: 'Role',
+                     position: 'outer-center',
+                 },
+             },
+             y: {
+                 tick: {
+                     format: function(x) {
+                         return (x == Math.floor(x)) ? x : "";
+                     }
+                 },
+                 label: {
+                     text: 'Number of employee',
+                     position: 'outer-middle',
+                 }
+             },
+         },
+        
+         zoom: {
+             enabled: true,
+         },
+         point: {
+             show: true,
+         },
+     });
+ }
+
+ function chiamataAjax(tipo, link, time, identificativo, tipoGrafico) {
+
+     $.ajax({
+         //Type of Ajax call (GET).
+         type: tipo,
+         //URL of the php resource, that generate the data of the chart.
+         url: link,
+         timeout: time,
+         success: function() {
+             tipo = tipoGrafico.localeCompare("personale");
+             if (tipo == 0) {
+                 generaGraficoPersonale(link + "?id=" + identificativo + "&lat=" + coordinates.lat + "&lng=" + coordinates.lng);
+             } else {
+                 tipo = tipoGrafico.localeCompare("numero");
+                 if (tipo == 0) {
+                     generaGraficoNumero(link + "?id=" + identificativo + "&lat=" + coordinates.lat + "&lng=" + coordinates.lng);
+                 } else {
+					console.log(tipo);
+                     generaGraficoInglese(link + "?id=" + identificativo + "&lat=" + coordinates.lat + "&lng=" + coordinates.lng);
+                 }
+             }
+         },
+         error: function() {
+             //If there are some problems with the Ajax call a message error will be generated.
+             alert("Si e' verificato un errore con la chiamata Ajax, impossibile generare il grafico!");
+         },
+     })
+ }
+ $(document).ready(function() {
+     tipoGrafico = "personale";
+
+
+     $('#personale').click(function() {
+         chiamataAjax("GET", link, 5000, "2", "personale");
+     });
+     $('#numero').click(function() {
+         chiamataAjax("GET", link, 5000, "3", "numero");
+     });
+     $('#english').click(function() {
+         chiamataAjax("GET", link, 5000, "4", "english");
+     });
+ });
+
+//_______________________________________________________________________________________________________________________________________________________________________________________
+//GRAFICO TURRIZIANI
+//_______________________________________________________________________________________________________________________________________________________________________________________
+ 
+    function generaGraficoPersonaleDC(link) {
+     var chart = "";
+     var chart = dc.rowChart("#test");
+     d3.csv(link, function(data) {
+
+
+         data.forEach(function(d) {
+             d.num = +d.numero;
+         });
+
+         var ndx = crossfilter(data),
+             tipo = ndx.dimension(function(d) {
+                 return d.tipoQualifica;
+             });
+         Frequenza = tipo.group().reduceSum(function(d) {
+             return d.numero;
+         });
+
+
+        chart
+             .width(900)
+             .height(400)
+             .x(d3.scale.linear().domain([6, 20]))
+             .elasticX(true)
+             .dimension(tipo)
+             .group(Frequenza)
+             .renderLabel(true)
+             .render()
+
+         /*var nasdaqTable = dc.dataTable('.dc-data-table');
+         nasdaqTable  
+
+             .dimension(tipo)
+             .group(function(d) {
+                 return d.sede;
+             })
+             .size(250)
+             .columns([
+                 'tipoQualifica',
+                 'numero',
+             ])
+             .order(d3.descending)
+             .on('render', function(table) {
+                 $("#tabella").show();
+                 table.selectAll('.dc-table-group').classed('info', true);
+
+             });*/
+
+
+     });
+ }
+
+ function generaGraficoPersonaleDC1(link) {
+     $("#tabella").hide();
+     var chart = "";
+     var chart = dc.rowChart("#test");
+     d3.csv(link, function(data) {
+
+
+         data.forEach(function(d) {
+             d.num = +d.numero;
+         });
+
+         var ndx = crossfilter(data),
+             tipo = ndx.dimension(function(d) {
+                 return d.tipoQualifica;
+             });
+         Frequenza = tipo.group().reduceSum(function(d) {
+             return d.numero;
+         });
+
+         chart
+             .width(900)
+             .height(400)
+             .x(d3.scale.linear().domain([6, 20]))
+             .elasticX(true)
+             .dimension(tipo)
+             .group(Frequenza)
+             .render();
+
+
+        /* var nasdaqTable = dc.dataTable('.dc-data-table');
+         nasdaqTable 
+             .dimension(tipo)
+             .group(function(d) {
+                 return d.sede;
+             })
+             .size(250)
+             .columns([
+                 'tipoQualifica',
+                 'numero',
+             ])
+             .order(d3.ascending)
+             .on('renderlet', function(table) {
+                 $("#tabella").show();
+                 table.selectAll('.dc-table-group').classed('info', true);
+             });*/
+
+     });
+ }
+
+ function chiamataAjaxDC(tipo, link, time, identificativo, tipoGraficoDC) {
+     $.ajax({
+         //Type of Ajax call (GET).
+         type: tipo,
+         //URL of the php resource, that generate the data of the chart.
+         url: link,
+         timeout: time,
+         //In case of success, the chart will be generated.
+         success: function() {
+             tipo = tipoGraficoDC.localeCompare("italiano");
+             if (tipo == 0) {
+                 generaGraficoPersonaleDC(link + "?id=" + identificativo + "&lat=" + coordinates.lat + "&lng=" + coordinates.lng);
+             } else {
+                 generaGraficoPersonaleDC1(link + "?id=" + identificativo + "&lat=" + coordinates.lat + "&lng=" + coordinates.lng);
+             }
+         },
+         error: function() {
+             //If there are some problems with the Ajax call a message error will be generated.
+             alert("Si e' verificato un errore con la chiamata Ajax, impossibile generare il grafico!");
+         },
+     })
+ }
+ $(document).ready(function() {
+     tipoGraficoDC = "italiano";
+
+
+     $('#italiano').click(function() {
+         $("#tabella").hide();
+         chiamataAjaxDC("GET", link, 5000, "3", "italiano");
+     });
+     $('#inglese').click(function() {
+         chiamataAjaxDC("GET", link, 5000, "4", "inglese");
+     });
+ });
+    </script>
+
+
+    </body>
+</html>

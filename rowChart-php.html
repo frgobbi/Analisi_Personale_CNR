@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <title>dc.js - Row Chart Example</title>
+      <meta charset="UTF-8">
+      <style>
+         #export {
+         visibility: hidden;
+         }
+         @font-face {
+         font-family: "myfont";
+         src: url("Font/fontawesome-webfont.woff") format('woff');
+         font-weight: bold;
+         }
+         @font-face {
+         font-family: "myfont";
+         src: url("Font/fontawesome-webfont.woff2") format('woff2');
+         font-weight: bold;
+         }
+         @font-face {
+         font-family: 'font_name';
+         src: url('Font/fontawesome-webfont.ttf') format('truetype');
+         ;
+         }
+      </style>
+      <link rel="stylesheet" type="text/css" href="css/dc.css" />
+      <!-- Latest compiled and minified CSS -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+      <!-- Optional theme -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+      <!-- Latest compiled and minified JavaScript -->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+      <!-- Importazione del codice Javascript della libreria "JQuery", utilizzata per le chiamate Ajax e per altre funzioni -->
+      <script src="http://code.jquery.com/jquery-1.11.3.js"></script>
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+      <link rel="stylesheet" href="Font/font-awesome.min.css">
+   </head>
+   <body>
+      <div class="row">
+         <img class="col-sm-offset-11 "src="img/italiano.png" width="40" height="30" id="italiano" >
+         <img  src="img/inglese.png"  width="40" height="30" id="inglese" >
+         <div class="col-sm-offset-2 col-sm-8" id="test"></div>
+      </div>
+      <div id="itab">
+         <table id="tabella" class="table table-hover dc-data-table">
+         </table>
+      </div>
+      <div class="col-sm-offset-10 col-sm-2">
+         <a href="#" class="btn btn-primary btn-block" id="export"><i class="fa fa-download fa-1x"></i> Esporta la tabella in CSV</a>
+      </div>
+      <script type="text/javascript" src="js/d3.js"></script>
+      <script type="text/javascript" src="js/crossfilter.js"></script>
+      <script type="text/javascript" src="js/dc.js"></script>
+      <script type="text/javascript">
+         var link='http://paploo.irpi.cnr.it/itis2015/personale/Personale.php';
+         function generaGraficoPersonale(link){
+         var chart = "";
+         var chart = dc.rowChart("#test");
+         d3.csv(link, function(data) {
+         
+         
+         			data.forEach(function(d) {
+         				d.num = +d.numero;
+         			});
+         
+           var ndx                 = crossfilter(data),
+         	  tipo = ndx.dimension(function(d) {
+         					return d.tipoQualifica;
+         				});
+         	  Frequenza = tipo.group().reduceSum(function(d) {
+         				return d.numero;
+         			});
+         
+         			
+           chart
+         	.width(768)
+         	.height(480)
+         	.x(d3.scale.linear().domain([6,20]))
+         	.elasticX(true)
+         	.dimension(tipo)
+         	.group(Frequenza)
+         	.renderLabel(true)
+         	.render();
+         	//.ordinalColor(["orange"])
+         	var nasdaqTable = dc.dataTable('.dc-data-table');
+         			nasdaqTable //dc.dataTable('.dc-data-table', 'chartGroup') 
+         				
+         				.dimension(tipo)
+         				.group(function(d) {
+         					return d.sede;
+         				})
+         				.size(250)
+         				.columns([
+         					'tipoQualifica',
+         					'numero',
+         				])
+         				.order(d3.ascending)
+         				.on('render', function(table) {
+         					$("#itab").show();
+         					table.selectAll('.dc-table-group').classed('info', true);
+         					document.getElementById('export').style.visibility = "visible";
+         				});
+         				 $("#export").on('click', function(event) {
+         				console.log(event.target);
+         				//Get table
+         				var table = $("#tabella")[0];
+         				console.log(table);
+         				//Get number of rows/columns
+         				var rowLength = table.rows.length;
+         				console.log(rowLength)
+         				var colLength = table.rows[0].cells.length;
+         				//Declare string to fill with table data
+         				var tableString = "";
+         
+         				//Get column headers
+         				for (var i = 0; i < colLength; i++) {
+         					tableString += table.rows[0].cells[i].innerHTML.split(",").join("") + ",";
+         				}
+         
+         				tableString = tableString.substring(0, tableString.length - 1);
+         				tableString += "\r\n";
+         				//Get row data
+         				for (var j = 1; j < rowLength; j++) {
+         					for (var k = 0; k < colLength; k++) {
+         						tableString += table.rows[j].cells[k].innerHTML.split(",").join("") + "," + "";
+         						tableString += table.rows[j].cells[k+1].innerHTML.split(",").join("") ;
+         					}
+         					tableString += "\r\n";
+         					console.log(tableString);
+         				}
+         				//Save file
+         				if (navigator.appName == "Microsoft Internet Explorer") {
+         					//Optional: If you run into delimiter issues (where the commas are not interpreted and all data is one cell), then use this line to manually specify the delimeter
+         					tableString = 'sep=,\r\n' + tableString;
+         
+         					myFrame.document.open("text/html", "replace");
+         					myFrame.document.write(tableString);
+         					myFrame.document.close();
+         					myFrame.focus();
+         					myFrame.document.execCommand('SaveAs', true, 'data.csv');
+         				} else {
+         					csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(tableString);
+         
+         					$(event.target).attr({
+         						'href': csvData,
+         						'target': '_blank',
+         						'download': 'tabellaDati.csv'
+         					});
+         				}
+         			});
+         			//Fine delle operazioni da compiere una volta avvenuto il caricamento della pagina
+         });
+         }
+         function generaGraficoPersonale1(link){
+         document.getElementById('export').style.visibility = "hidden";
+         $("#itab").hide();
+         var chart = "";
+         var chart = dc.rowChart("#test");
+         d3.csv(link, function(data) {
+         
+         
+         			data.forEach(function(d) {
+         				d.num = +d.numero;
+         			});
+         
+           var ndx                 = crossfilter(data),
+         	  tipo = ndx.dimension(function(d) {
+         					return d.tipoQualifica;
+         				});
+         	  Frequenza = tipo.group().reduceSum(function(d) {
+         				return d.numero;
+         			});
+         
+         			/*var minDate = transactionDate.bottom(1)[0].date; //crea il dominio minimo con le date
+         			var maxDate = transactionDate.top(1)[0].date; //crea il dominio massimo con le date*/
+         			
+           chart
+         	.width(768)
+         	.height(480)
+         	.x(d3.scale.linear().domain([6,20]))
+         	.elasticX(true)
+         	.dimension(tipo)
+         	.group(Frequenza)
+         	.render();
+         	//.ordinalColor(["orange"])
+         	var nasdaqTable = dc.dataTable('.dc-data-table');
+         			nasdaqTable //dc.dataTable('.dc-data-table', 'chartGroup') 
+         				.dimension(tipo)
+         				.group(function(d) {
+         					return d.sede;
+         				})
+         				.size(250)
+         				.columns([
+         					'tipoQualifica',
+         					'numero',
+         				])
+         				.order(d3.ascending)
+         				.on('renderlet', function(table) {
+         					$("#itab").show();
+         					table.selectAll('.dc-table-group').classed('info', true);
+         					document.getElementById('export').style.visibility = "visible";
+         				});
+         				 $("#export").on('click', function(event) {
+         				console.log(event.target);
+         				//Get table
+         				var table = $("#tabella")[0];
+         				console.log(table);
+         				//Get number of rows/columns
+         				var rowLength = table.rows.length;
+         				console.log(rowLength)
+         				var colLength = table.rows[0].cells.length;
+         				//Declare string to fill with table data
+         				var tableString = "";
+         
+         				//Get column headers
+         				for (var i = 0; i < colLength; i++) {
+         					tableString += table.rows[0].cells[i].innerHTML.split(",").join("") + ",";
+         				}
+         
+         				tableString = tableString.substring(0, tableString.length - 1);
+         				tableString += "\r\n";
+         				//Get row data
+         				for (var j = 1; j < rowLength; j++) {
+         					for (var k = 0; k < colLength; k++) {
+         						tableString += table.rows[j].cells[k].innerHTML.split(",").join("") + "," + "";
+         						tableString += table.rows[j].cells[k+1].innerHTML.split(",").join("") ;
+         					}
+         					tableString += "\r\n";
+         					console.log(tableString);
+         				}
+         				//Save file
+         				if (navigator.appName == "Microsoft Internet Explorer") {
+         					//Optional: If you run into delimiter issues (where the commas are not interpreted and all data is one cell), then use this line to manually specify the delimeter
+         					tableString = 'sep=,\r\n' + tableString;
+         
+         					myFrame.document.open("text/html", "replace");
+         					myFrame.document.write(tableString);
+         					myFrame.document.close();
+         					myFrame.focus();
+         					myFrame.document.execCommand('SaveAs', true, 'data.csv');
+         				} else {
+         					csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(tableString);
+         
+         					$(event.target).attr({
+         						'href': csvData,
+         						'target': '_blank',
+         						'download': 'tabellaDati.csv'
+         					});
+         				}
+         			});
+         			//Fine delle operazioni da compiere una volta avvenuto il caricamento della pagina
+         });
+         }
+         function chiamataAjax(tipo,link,time,identificativo,tipoGrafico)
+         		{
+         			$.ajax({
+         				//Type of Ajax call (GET).
+         				type: tipo,
+         				//URL of the php resource, that generate the data of the chart.
+         				url: link,
+         				timeout:time,
+         				//In case of success, the chart will be generated.
+         				success: function(){
+         					tipo = tipoGrafico.localeCompare("italiano");
+         					if(tipo == 0)
+         					{	
+         						generaGraficoPersonale(link+"?id="+identificativo);
+         					}
+         					else
+         					{	
+         						generaGraficoPersonale1(link+"?id="+identificativo);
+         					}	
+         				},
+         				error: function(){
+         					//If there are some problems with the Ajax call a message error will be generated.
+         					alert("Si e' verificato un errore con la chiamata Ajax, impossibile generare il grafico!");
+         				},
+         			})
+         		}
+         		$(document).ready(function(){
+         			tipoGrafico="italiano";
+         			chiamataAjax("GET",link,5000,"3",tipoGrafico);
+         		
+         			$('#italiano').click(function(){
+         				document.getElementById('export').style.visibility = "hidden";
+         				$("#itab").hide();
+         				chiamataAjax("GET",link,5000,"3","italiano");
+         			});
+         			$('#inglese').click(function(){
+         				chiamataAjax("GET",link,5000,"4","inglese");
+         			});		
+         		});
+         
+      </script>
+   </body>
+</html>

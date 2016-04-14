@@ -1,0 +1,5 @@
+personale
+paploo.irpi.cnr.it
+5433
+postgres
+root
